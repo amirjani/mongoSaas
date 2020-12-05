@@ -23,8 +23,7 @@ MongoClient.connect(
         const menuItemNumber    = 100;
         const orderNumber       = 100000;
         const userNumber        = 100000;
-        const tableNumber       = 20;
-
+        const tableNumber       = 50;
 
         for (let i = 0; i < databaseNumber; i++) {
             console.log("database: ", `Fabizi_${i+1}`);
@@ -44,7 +43,8 @@ MongoClient.connect(
                 console.log("Table Insert: ", j);
                 const table = await tableCollection.insertOne({
                     name: faker.name.findName(),
-                    status: "FREE"
+                    status: "FREE",
+                    capacity: faker.random.number(),
                 })
                 tableItem.push(table.insertedId)
             }
@@ -55,7 +55,28 @@ MongoClient.connect(
                 console.log("User Insert: ", j);
                 const user = await userCollection.insertOne({
                     name: faker.name.findName(),
-                    phone: faker.phone.phoneNumber(),
+                    phone: [
+                        {
+                            number: faker.phone.phoneNumber(),
+                            prefix: '+98'
+                        },
+                        {
+                            number: faker.phone.phoneNumber(),
+                            prefix: '+98'
+                        }
+                    ],
+                    location: {
+                        lat: faker.address.latitude(),
+                        long: faker.address.longitude(),
+                        address: faker.address.streetAddress()
+                    },
+                    email: faker.internet.email(),
+                    password: faker.random.word(),
+                    role: [
+                        "ADMIN",
+                        "SUPER_VISOR"
+                    ],
+                    orders: []
                 })
                 userItem.push(user.insertedId)
             }
@@ -65,7 +86,16 @@ MongoClient.connect(
             for (let j = 0; j < ingredientNumber; j++) {
                 console.log("Ingredient Insert: ", j);
                 const ingredient = await ingredientCollection.insertOne({
-                    name: faker.name.findName()
+                    itemType: "VEGETABLES",
+                    name: faker.name.findName(),
+                    unit: "gr",
+                    size: faker.random.number(),
+                    minimumCapacity: 2, 
+                    defaultPrice: faker.random.number(),
+                    wasteIn: faker.random.number(),
+                    stock: [
+                        "Niavaran"
+                    ]
                 })
                 ingredientItem.push(ingredient.insertedId)
             }
@@ -76,19 +106,72 @@ MongoClient.connect(
                 console.log("addOn Insert: ", j);
                 const addOn = await addOnCollection.insertOne({
                     name: faker.name.findName(),
-                    ingredientItem: ingredientItem
+                    ingredientItem: [
+                        ingredientItem[Math.floor(Math.random() * ingredientItem.length)],
+                        ingredientItem[Math.floor(Math.random() * ingredientItem.length)],
+                        ingredientItem[Math.floor(Math.random() * ingredientItem.length)],
+                        ingredientItem[Math.floor(Math.random() * ingredientItem.length)],
+                        ingredientItem[Math.floor(Math.random() * ingredientItem.length)]
+                    ],
+                    amount: faker.random.number(),
+                    size: faker.random.number(),
+                    mainCost: faker.random.number(),
+                    wasteCost: faker.random.number()
                 })
-                ingredientItem.push(addOn.insertedId)
+                addOnItem.push(addOn.insertedId)
             }
 
-            // ---------------------> addOn <----------------------------------
+            // ---------------------> recipe <----------------------------------
             const recipeItem = [];
             for (let j = 0; j < recipeNumber ; j++) {
                 console.log("recipe Insert: ", j);
                 const recipe = await recipeCollection.insertOne({
                     name: faker.name.findName(),
-                    ingredientItem: ingredientItem,
-                    addOnItem: addOnItem
+                    amount: faker.random.number(),
+                    unit: 'gr',
+                    bulk: faker.random.boolean(),
+                    mainCost: faker.random.number(),
+                    wasteCost:  faker.random.number(),
+                    ingredients: [
+                        {
+                            ingredient: ingredientItem[Math.floor(Math.random() * ingredientItem.length)],
+                            usage: faker.random.number(),
+                            waste: faker.random.number()
+                        },
+                        {
+                            ingredient: ingredientItem[Math.floor(Math.random() * ingredientItem.length)],
+                            usage: faker.random.number(),
+                            waste: faker.random.number()
+                        },
+                        {
+                            ingredient: ingredientItem[Math.floor(Math.random() * ingredientItem.length)],
+                            usage: faker.random.number(),
+                            waste: faker.random.number()
+                        },
+                        {
+                            ingredient: ingredientItem[Math.floor(Math.random() * ingredientItem.length)],
+                            usage: faker.random.number(),
+                            waste: faker.random.number()
+                        },
+                        
+                    ],
+                    addOns: [
+                        {
+                            addOn: addOnItem[Math.floor(Math.random() * addOnItem.length)],
+                            usage: faker.random.number(),
+                            waste: faker.random.number()
+                        },
+                        {
+                            addOn: addOnItem[Math.floor(Math.random() * addOnItem.length)],
+                            usage: faker.random.number(),
+                            waste: faker.random.number()
+                        },
+                        {
+                            addOn: addOnItem[Math.floor(Math.random() * addOnItem.length)],
+                            usage: faker.random.number(),
+                            waste: faker.random.number()
+                        },
+                    ]
                 })
                 recipeItem.push(recipe.insertedId)
             }
@@ -99,10 +182,29 @@ MongoClient.connect(
                 console.log("menuItem: ", j);
 
                 const menuItem = await menuItemCollection.insertOne({
+                    image: faker.random.words(),
                     name: faker.name.findName(),
+                    englishName: faker.random.word(),
                     quantity: faker.random.number(),
                     price: faker.random.number(),
-                    recipe: recipeItem[Math.floor(Math.random() * recipeItem.length)],
+                    recipes: [
+                        {
+                            recipe: recipeItem[Math.floor(Math.random() * recipeItem.length)],
+                            amount: quantityOrder()
+                        },
+                        {
+                            recipe: recipeItem[Math.floor(Math.random() * recipeItem.length)],
+                            amount: quantityOrder()
+                        },
+                        {
+                            recipe: recipeItem[Math.floor(Math.random() * recipeItem.length)],
+                            amount: quantityOrder()
+                        },
+                        {
+                            recipe: recipeItem[Math.floor(Math.random() * recipeItem.length)],
+                            amount: quantityOrder()
+                        }
+                    ],
                 })
 
                 menuItemArray.push(menuItem.insertedId);
@@ -114,84 +216,110 @@ MongoClient.connect(
 
                 let tableId = tableItem[Math.floor(Math.random() * tableItem.length)]
 
-                await orderCollection.insertOne({
-                    orderId: faker.random.number({
-                        'min': 10000,
-                        'max': 40000
-                    }),
-                    table: {
-                        _id: tableId,
+                const order = await orderCollection.insertOne({
+                    orderId: j + 1,
+                    sit: {
+                        table: tableId,
                         checkInDateTime: faker.time.recent(),
                     },
                     totalPrice: faker.random.number(),
 
                     participant: [
                         {
-                            userId: userItem[Math.floor(Math.random() * userItem.length)],
+                            user: userItem[Math.floor(Math.random() * userItem.length)],
                             subOrderId: 1,
-                            preparation_time: faker.random.number(),
                             checkOutDateTime: new Date(),
                             totalPrice: faker.random.number(),
-                            menuItem: [
+                            menuItems: [
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 },
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 },
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 }
                             ]
                         },
                         {
-                            userId: userItem[Math.floor(Math.random() * userItem.length)],
-                            subOrderId: 1,
+                            user: userItem[Math.floor(Math.random() * userItem.length)],
+                            subOrderId: 2,
                             preparation_time: faker.random.number(),
                             checkOutDateTime: new Date(),
                             totalPrice: faker.random.number(),
-                            menuItem: [
+                            menuItems: [
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 },
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 },
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 }
                             ]
                         },
                         {
-                            userId: userItem[Math.floor(Math.random() * userItem.length)],
-                            subOrderId: 1,
+                            user: userItem[Math.floor(Math.random() * userItem.length)],
+                            subOrderId: 3,
                             preparation_time: faker.random.number(),
                             checkOutDateTime: new Date(),
                             totalPrice: faker.random.number(),
-                            menuItem: [
+                            menuItems: [
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 },
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 },
                                 {
-                                    _id: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
-                                    count: quantityOrder()
+                                    menuItem: menuItemArray[Math.floor(Math.random() * menuItemArray.length)],
+                                    count: quantityOrder(),
+                                    price: faker.random.number(),
+                                    preprationTime: faker.random.number()
                                 }
                             ]
                         }
                     ]
 
                 })
+                
+                // attach order to user collection 
+                order.ops[0].participant.forEach(item => {
+                    userCollection.updateOne({
+                        "_id": item.user
+                    }, {
+                        "$push": {
+                            orders: order.insertedId    
+                        }
+                    })
+                });
+                
             }
 
 
@@ -199,6 +327,32 @@ MongoClient.connect(
 
             // ---------------------------> index <--------------------------------------
             console.log("INDEXING STARTED AT: ", new Date())
+
+            await userCollection.createIndex(
+                {
+                    'orders': 1
+                }
+            )
+
+            await userCollection.createIndex(
+                {
+                    'name': 1
+                }
+            )
+
+            await userCollection.createIndex(
+                {
+                    'email': 1
+                }
+            )
+
+            await userCollection.createIndex(
+                {
+                    'phone.number': 1
+                }
+            )
+
+
             await addOnCollection.createIndex({
                 'ingredientItem': 1
             })
@@ -208,6 +362,15 @@ MongoClient.connect(
             })
             await recipeCollection.createIndex({
                 'addOnItem': 1
+            })
+            await recipeCollection.createIndex({
+                'mainCost': 1
+            })
+            await recipeCollection.createIndex({
+                'wasteCost': 1
+            })
+            await recipeCollection.createIndex({
+                'amount': 1
             })
 
             await menuItemCollection.createIndex({
@@ -221,6 +384,10 @@ MongoClient.connect(
                 'status': 1
             })
 
+            await tableCollection.createIndex({
+                'capacity': 1
+            })
+
             await userCollection.createIndex({
                 'phone': 1
             })
@@ -230,7 +397,11 @@ MongoClient.connect(
             })
 
             await orderCollection.createIndex({
-                'table._id': 1
+                'participant.UserId': 1
+            })
+
+            await orderCollection.createIndex({
+                'sit.table': 1
             })
 
             await orderCollection.createIndex({
@@ -238,11 +409,7 @@ MongoClient.connect(
             })
 
             await orderCollection.createIndex({
-                'participant.userId': 1
-            })
-
-            await orderCollection.createIndex({
-                'participant.menuItem._id': 1
+                'participant.menuItems.menuItem': 1
             })
 
             console.log("INDEXING ENDED AT: ", new Date())

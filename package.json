@@ -10,8 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/mongoose": "^5.10.2",
     "faker": "^5.1.0",
     "mongodb": "^3.6.3",
-    "mongoose": "^5.11.2"
+    "mongoose": "^5.11.4",
+    "mongoose-deep-populate": "^3.2.0"
   }
 }
